@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>mydragger</title>
+	<script src="../libirary/jquery-1.12.0.min.js"></script>
+	<script src="draggable-list.js"></script>
+	<link rel="stylesheet" type="text/css" href="draggable-list.css">
+	<style type="text/css">
+		#ul-wrapper, #backup {
+			float: left;
+			min-width: 600px;
+		}
+	</style>
+</head>
+<body>
+	<div id="ul-wrapper"></div>
+	<div id="backup"></div>
+	<script type="text/javascript">
+		var list = [
+			{
+				name: 'im A'
+			},
+			{
+				name: 'im B',
+				children: [
+					{
+						name: 'im BA'
+					},
+					{
+						name: 'im BB'
+					}
+				]	
+			},
+			{
+				name: 'im C',
+				children: [
+					{
+						name: 'im CA',
+						children: [
+							{
+								name: 'im CAA'
+							},
+							{
+								name: 'im CAB'
+							},
+							{
+								name: 'im CAC'
+							}
+						]
+					},
+					{
+						name: 'im CB'
+					}
+				]	
+			},
+		];
+		var list2 = [
+			{
+				name: 'im 1'
+			},
+			{
+				name: 'im 2'
+			},
+			{
+				name: 'im 3'
+			}
+		];
+		$('#ul-wrapper').draggableList(list, {
+			allows: ['backup'],
+			maxlevel: 3
+			// allows: []
+		});
+		$('#backup').draggableList(list2, {
+			allows: ['ul-wrapper'],
+			maxlevel: 1
+		});
+	</script>
+</body>
+</html>
