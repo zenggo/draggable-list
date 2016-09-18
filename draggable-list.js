@@ -8,6 +8,7 @@
 		up_placer: 'zdl-uppl',
 		down_placer: 'zdl-downpl',
 		div_handler: 'zdl-handler',
+		name_span: 'zdl-name',
 		empty_handler: 'zdl-empty'
 	};
 
@@ -48,9 +49,11 @@
 			dragstart_handler(ev, st);
 		}).on('dragend', '.'+_class.li_unit, function (ev) {
 			dragend_handler(ev);
-		}).on('dragenter', '.'+_class.div_handler+',.'+_class.up_placer+',.'+_class.down_placer, function (ev) {
-			dragmoveon_handler(ev, $el, 'enter');
-		}).on('dragover', '.'+_class.div_handler+',.'+_class.up_placer+',.'+_class.down_placer, function (ev) {
+		})
+		// .on('dragenter', '.'+_class.div_handler+',.'+_class.up_placer+',.'+_class.down_placer, function (ev) {
+		// 	dragmoveon_handler(ev, $el, 'enter'); // dragenter在li内元素上触发时，会先触发enter后触发父元素的leave，背景色就无效了 所以这里改在over里设背景色
+		// })
+		.on('dragover', '.'+_class.div_handler+',.'+_class.up_placer+',.'+_class.down_placer, function (ev) {
 			dragmoveon_handler(ev, $el, 'over');
 		}).on('dragleave', '.'+_class.div_handler+',.'+_class.up_placer+',.'+_class.down_placer, function (ev) {
 			dragmoveon_handler(ev, $el, 'leave');
@@ -71,9 +74,16 @@
 			var dragel = $from.data('zdglist').status.dragel;
 			var args = [$(dragel), $(this).closest('.'+_class.container), $from, $el];
 			if (!dropCheck.apply(null, args)) { return; }			
-			$(this).parent().parent().append(dragel);
+			// $(this).parent().parent().append(dragel);
+			// $(this).parent().remove();
+			// dropEndDeal.apply(null, args);
+			var $that = $(this).parent().parent();
 			$(this).parent().remove();
-			dropEndDeal.apply(null, args);
+			$(dragel).hide(100, function () {
+				$that.append(dragel);
+				dropEndDeal.apply(null, args);
+				$(dragel).show(100);
+			});
 		});
 	}
 
@@ -91,31 +101,34 @@
 		_dragFromEl = null;
 	}
 	function dragmoveon_handler (ev, $el, type) {
+		// if (!$(ev.target).hasClass('zdl-plcr')) { return; }
+		var $tgt = $(ev.target).closest('.zdl-plcr');
 		var dt = $el.data('zdglist');
 		var st = dt.status;
 		if (!st.draging && dt.relation.indexOf(_dragFromEl)<0) { // 也不是从其他允许的list里拖过来的
 			return;
 		}
-		if (st.draging && st.dragel === $(ev.target).parent()[0]) {
+		if (st.draging && st.dragel === $tgt.parent()[0]) {
 			return; // 自己拖到自己
 		}
 		switch (type) {
-			case 'enter':
-				$(ev.target).css({background: '#c33'});		
-				break;
+			// case 'enter':
+			// 	$tgt.css({background: '#6495ED', color: '#fff'});		
+			// 	break;
 			case 'over':
 				ev.preventDefault();	
+				$tgt.css({background: '#6495ED', color: '#fff', opacity: 1});		
 				break;	
 			case 'leave':
-				$(ev.target).css({background: ''});
+				$tgt.css({background: '', color: '', opacity: ''});
 				break;
 			default: break;
 		}
 	}
 	function drop_handler (ev, st, $el) {
 		ev.preventDefault();
-		var $droparea = $(ev.target);
-		$droparea.css({background: ''});
+		var $droparea = $(ev.target).closest('.zdl-plcr');
+		$droparea.css({background: '', color: '', opacity: ''});
 		var st = st;
 		var $unit = $droparea.parent();
 		var dragel;
@@ -226,9 +239,9 @@
 
 	function genHTML (unit) {
 		var html = '<li draggable="true" class="' + _class.li_unit + '">'
-			+ '<div class="' + _class.up_placer + '"></div>'
-			+ '<div class="' + _class.div_handler + '">' + (unit.name||'') + '</div>'
-			+ '<div class="' + _class.down_placer + '"></div>'
+			+ '<div class="' + _class.up_placer + ' zdl-plcr">up</div>'
+			+ '<div class="' + _class.div_handler + ' zdl-plcr"><span class="' + _class.name_span + '">' + (unit.name||'') + '</span></div>'
+			+ '<div class="' + _class.down_placer + ' zdl-plcr">down</div>'
 			+ '</li>';
 		var $li = $(html);
 		for (var k in unit) {
