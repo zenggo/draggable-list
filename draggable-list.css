@@ -7,7 +7,7 @@
 .zdl-unit {
 	list-style: none;
 }
-.zdl-handler {
+.zdl-handler, .zdl-empty {
 	display: inline-block;
 	width: 260px;
 	margin: 8px 0;
@@ -16,6 +16,10 @@
 	border-radius: 3px;
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
+}
+.zdl-empty {
+	width: 300px;
+	border-style: dashed;
 }
 .zdl-uppl, .zdl-downpl {
 	display: inline-block;
