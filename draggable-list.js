@@ -5,6 +5,7 @@
 		container: 'zdl-container',
 		ul_list: 'zdl-ul',
 		li_unit: 'zdl-unit',
+		drop_placer: 'zdl-plcr',
 		up_placer: 'zdl-uppl',
 		down_placer: 'zdl-downpl',
 		div_handler: 'zdl-handler',
@@ -58,15 +59,11 @@
 			dragstart_handler(ev, st);
 		}).on('dragend', '.'+_class.li_unit, function (ev) {
 			dragend_handler(ev);
-		})
-		// .on('dragenter', '.'+_class.div_handler+',.'+_class.up_placer+',.'+_class.down_placer, function (ev) {
-		// 	dragmoveon_handler(ev, $el, 'enter'); // dragenter在li内元素上触发时，会先触发enter后触发父元素的leave，背景色就无效了 所以这里改在over里设背景色
-		// })
-		.on('dragover', '.'+_class.div_handler+',.'+_class.up_placer+',.'+_class.down_placer, function (ev) {
+		}).on('dragover', '.'+_class.drop_placer, function (ev) {
 			dragmoveon_handler(ev, $el, 'over');
-		}).on('dragleave', '.'+_class.div_handler+',.'+_class.up_placer+',.'+_class.down_placer, function (ev) {
+		}).on('dragleave', '.'+_class.drop_placer, function (ev) {
 			dragmoveon_handler(ev, $el, 'leave');
-		}).on('drop', '.'+_class.div_handler+',.'+_class.up_placer+',.'+_class.down_placer, function (ev) {
+		}).on('drop', '.'+_class.drop_placer, function (ev) {
 			drop_handler(ev, st, $el);
 		});
 		bindEmptyPlacer($el);
@@ -97,6 +94,7 @@
 
 	var _dragFromEl;
 	function dragstart_handler (ev, st) {
+		if (_dragFromEl) {return;}
 		st.draging = true;
 		st.dragel = ev.target;
 		st.dragelPar = ev.target.parentNode;
@@ -111,8 +109,7 @@
 		_dragFromEl = null;
 	}
 	function dragmoveon_handler (ev, $el, type) {
-		// if (!$(ev.target).hasClass('zdl-plcr')) { return; }
-		var $tgt = $(ev.target).closest('.zdl-plcr');
+		var $tgt = $(ev.currentTarget);
 		var dt = $el.data('zdglist');
 		var st = dt.status;
 		if (!st.draging && dt.relation.indexOf(_dragFromEl)<0) { // 也不是从其他允许的list里拖过来的
@@ -121,13 +118,10 @@
 		if (st.draging && st.dragel === $tgt.parent()[0]) {
 			return; // 自己拖到自己
 		}
-		if ($(st.dragel).find($tgt).length) {
+		if (st.draging && $(st.dragel).find($tgt).length) {
 			return; // 拖到自己内部元素
 		}
 		switch (type) {
-			// case 'enter':
-			// 	$tgt.css({background: '#6495ED', color: '#fff'});		
-			// 	break;
 			case 'over':
 				ev.preventDefault();	
 				$tgt.css({background: '#6495ED', color: '#fff', opacity: 1});		
@@ -140,7 +134,7 @@
 	}
 	function drop_handler (ev, st, $el) {
 		ev.preventDefault();
-		var $droparea = $(ev.target).closest('.zdl-plcr');
+		var $droparea = $(ev.currentTarget);
 		$droparea.css({background: '', color: '', opacity: ''});
 		var st = st;
 		var $unit = $droparea.parent();
@@ -276,9 +270,9 @@
 	// generate
 	function genHTML (unit) {
 		var html = '<li draggable="true" class="' + _class.li_unit + '">'
-			+ '<div class="' + _class.up_placer + ' zdl-plcr">up</div>'
-			+ '<div class="' + _class.div_handler + ' zdl-plcr"><span class="' + _class.name_span + '">' + (unit.name||'') + '</span></div>'
-			+ '<div class="' + _class.down_placer + ' zdl-plcr">down</div>'
+			+ '<div class="' + _class.up_placer + ' '+_class.drop_placer+'">up</div>'
+			+ '<div class="' + _class.div_handler + ' '+_class.drop_placer+'"><span class="' + _class.name_span + '">' + (unit.name||'') + '</span></div>'
+			+ '<div class="' + _class.down_placer + ' '+_class.drop_placer+'">down</div>'
 			+ '</li>';
 		var $li = $(html);
 		for (var k in unit) {
@@ -298,9 +292,9 @@
 	// append new $li
 	function appendNew (name) {
 		var html = '<li draggable="true" class="'+_class.li_unit+'">'
-		+ '<div class="'+_class.up_placer+' zdl-plcr">up</div>'
-		+ '<div class="'+_class.div_handler+' zdl-plcr"><span class="'+_class.name_span+'">我是新目录</span><i class="fa fa-gavel cg-btn"></i></div>'
-		+ '<div class="'+_class.down_placer+' zdl-plcr">down</div></li>';
+		+ '<div class="'+_class.up_placer+' '+_class.drop_placer+'">up</div>'
+		+ '<div class="'+_class.div_handler+' '+_class.drop_placer+'"><span class="'+_class.name_span+'">'+name+'</span><i class="fa fa-gavel cg-btn"></i></div>'
+		+ '<div class="'+_class.down_placer+' '+_class.drop_placer+'">down</div></li>';
 		var $n = $(html);
 		$n.hide();
 		var $ul = this.children('.'+_class.ul_list).eq(0);
