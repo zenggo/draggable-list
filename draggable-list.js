@@ -33,7 +33,12 @@
 			$hinter: option.hinter || null,
 			dropchecker: [],
 			dropPreDealers: [],
-			dropEndDealers: []
+			dropEndDealers: [],
+			fns: {
+				getDepth: getDepth,
+				getLvl: getLvl,
+				getJsonObj: getJsonObj.bind(this)
+			}
 		};
 		this.data('zdglist', zdgdata);
 		if (option.maxlevel) {
@@ -43,6 +48,7 @@
 		bind(this);
 	};
 
+	// on drag
 	function bind ($el) {
 		var st = $el.data('zdglist').status;
 		$el.on('dragstart', '.'+_class.li_unit, function (ev) {
@@ -73,16 +79,13 @@
 			var $from = $('#'+_dragFromEl);
 			var dragel = $from.data('zdglist').status.dragel;
 			var args = [$(dragel), $(this).closest('.'+_class.container), $from, $el];
-			if (!dropCheck.apply(null, args)) { return; }			
-			// $(this).parent().parent().append(dragel);
-			// $(this).parent().remove();
-			// dropEndDeal.apply(null, args);
+			if (!dropCheck.apply(null, args)) { return; }
 			var $that = $(this).parent().parent();
 			$(this).parent().remove();
-			$(dragel).hide(100, function () {
+			$(dragel).hide(150, function () {
 				$that.append(dragel);
 				dropEndDeal.apply(null, args);
-				$(dragel).show(100);
+				$(dragel).show(150);
 			});
 		});
 	}
@@ -110,6 +113,9 @@
 		}
 		if (st.draging && st.dragel === $tgt.parent()[0]) {
 			return; // 自己拖到自己
+		}
+		if ($(st.dragel).find($tgt).length) {
+			return; // 拖到自己内部元素
 		}
 		switch (type) {
 			// case 'enter':
@@ -152,30 +158,41 @@
 				$ul = $('<ul class="' + _class.ul_list + '"></ul>');
 				$unit.append($ul);
 			}
-			$ul.append(dragel);
-			dropEndDeal.apply(null, args);
+			$(dragel).hide(150, function () {
+				$ul.append(dragel);
+				dropEndDeal.apply(null, args);
+				$(dragel).show(150);
+			});
 		} else if ($droparea.hasClass(_class.up_placer)) {
 			args = [$(dragel), $unit.parent().parent(), $from, $el];
 			if (!dropCheck.apply(null, args)) {
 				return false;
 			}
 			dropPreDeal.apply(null, args);
-			$(dragel).insertBefore($unit);
-			dropEndDeal.apply(null, args);
+			$(dragel).hide(150, function () {
+				$(dragel).insertBefore($unit);
+				dropEndDeal.apply(null, args);
+				$(dragel).show(150);
+			})
 		} else {
 			args = [$(dragel), $unit.parent().parent(), $from, $el];
 			if (!dropCheck.apply(null, args)) {
 				return false;
 			}
 			dropPreDeal.apply(null, args);
-			$(dragel).insertAfter($unit);
-			dropEndDeal.apply(null, args);
+			$(dragel).hide(150, function () {
+				$(dragel).insertAfter($unit);
+				dropEndDeal.apply(null, args);
+				$(dragel).show(150);
+			});
 		}
 	}
 
 	// drop check
 	function dropCheck ($dragel, $plel, $fromel, $toel) { // 拖动元素，置于其内的元素， 从哪个list拖过来，拖到的list
-		var checkers = $toel.data('zdglist').dropchecker;
+		var dt = $toel.data('zdglist');
+		var checkers = dt.dropchecker;
+		dt.$hinter.html('');
 		for (var i=0; i<checkers.length; i++) {
 			if (!checkers[i].apply(null, arguments)) {
 				return false;
@@ -188,31 +205,10 @@
 		var dep = getDepth($dragel),
 			lvl = getLvl($plel);
 		if (dep + lvl > dt.maxlevel) {
-			dt.$hinter.html('最大层级为' + dt.maxlevel);
+			dt.$hinter.append('<p>最大层级为' + dt.maxlevel + '</p>')
 			return false;
 		}
 		return true;
-	}
-	function getDepth ($li) {
-		var $ul = $li.children('ul');
-		if (!$ul.length) {
-			return 1;
-		}
-		var $lis = $ul.children('li');
-		var max = 0, lv;
-		for (var i=0; i<$lis.length; i++) {
-			lv = getDepth($lis.eq(i));
-			max = max<lv ? lv : max;
-		}
-		return max+1;
-	}
-	function getLvl ($li) {
-		var lvl = 0;
-		while (!$li.hasClass(_class.container)) {
-			$li = $li.parent().parent();
-			lvl ++;
-		}
-		return lvl;
 	}
 
 	// before dropped
@@ -237,6 +233,33 @@
 		$ul.append(html);
 	}
 
+	// util functions
+	function getDepth ($li) {
+		var $ul = $li.children('ul');
+		if (!$ul.length) {
+			return 1;
+		}
+		var $lis = $ul.children('li');
+		var max = 0, lv;
+		for (var i=0; i<$lis.length; i++) {
+			lv = getDepth($lis.eq(i));
+			max = max<lv ? lv : max;
+		}
+		return max+1;
+	}
+	function getLvl ($li) {
+		var lvl = 0;
+		while (!$li.hasClass(_class.container)) {
+			$li = $li.parent().parent();
+			lvl ++;
+		}
+		return lvl;
+	}
+	function getJsonObj () {
+
+	}
+
+	// generate
 	function genHTML (unit) {
 		var html = '<li draggable="true" class="' + _class.li_unit + '">'
 			+ '<div class="' + _class.up_placer + ' zdl-plcr">up</div>'
