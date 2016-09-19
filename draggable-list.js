@@ -26,7 +26,8 @@
 			status: {
 				elid: this.attr('id'),
 				draging: false,
-				dragel: null
+				dragel: null,
+				dragelPar: null
 			},
 			relation: option.allows,
 			maxlevel: option.maxlevel || null,
@@ -37,15 +38,17 @@
 			fns: {
 				getDepth: getDepth,
 				getLvl: getLvl,
-				getJsonObj: getJsonObj.bind(this)
+				getJson: getJson.bind(this),
+				emptyDealer: emptyDealer.bind(this),
+				appendNew: appendNew.bind(this)
 			}
 		};
 		this.data('zdglist', zdgdata);
 		if (option.maxlevel) {
 			zdgdata.dropchecker.push(check_maxlvl);
 		}
-		zdgdata.dropEndDealers.push(emptyDealer);
 		bind(this);
+		return zdgdata;
 	};
 
 	// on drag
@@ -77,13 +80,15 @@
 			}
 		}).on('drop', '.'+_class.empty_handler, function (ev) {
 			var $from = $('#'+_dragFromEl);
-			var dragel = $from.data('zdglist').status.dragel;
-			var args = [$(dragel), $(this).closest('.'+_class.container), $from, $el];
+			var st = $from.data('zdglist').status;
+			var dragel = st.dragel;
+			var args = [$(dragel), $(this).closest('.'+_class.container), $from, $el, $(st.dragelPar)];
 			if (!dropCheck.apply(null, args)) { return; }
 			var $that = $(this).parent().parent();
 			$(this).parent().remove();
 			$(dragel).hide(150, function () {
 				$that.append(dragel);
+				emptyDealer(args[4], $from);
 				dropEndDeal.apply(null, args);
 				$(dragel).show(150);
 			});
@@ -94,6 +99,7 @@
 	function dragstart_handler (ev, st) {
 		st.draging = true;
 		st.dragel = ev.target;
+		st.dragelPar = ev.target.parentNode;
 		_dragFromEl = st.elid;
 	}
 	function dragend_handler (ev) {
@@ -101,6 +107,7 @@
 		var st = $('#'+_dragFromEl).data('zdglist').status;
 		st.draging = false;
 		st.dragel = null;
+		st.dragelPar = null;
 		_dragFromEl = null;
 	}
 	function dragmoveon_handler (ev, $el, type) {
@@ -148,7 +155,7 @@
 		}
 		var args;
 		if ($droparea.hasClass(_class.div_handler)) {
-			args = [$(dragel), $unit, $from, $el];
+			args = [$(dragel), $unit, $from, $el, $(st.dragelPar)];
 			if (!dropCheck.apply(null, args)) {
 				return false;
 			}
@@ -160,28 +167,31 @@
 			}
 			$(dragel).hide(150, function () {
 				$ul.append(dragel);
+				emptyDealer(args[4], $from);
 				dropEndDeal.apply(null, args);
 				$(dragel).show(150);
 			});
 		} else if ($droparea.hasClass(_class.up_placer)) {
-			args = [$(dragel), $unit.parent().parent(), $from, $el];
+			args = [$(dragel), $unit.parent().parent(), $from, $el, $(st.dragelPar)];
 			if (!dropCheck.apply(null, args)) {
 				return false;
 			}
 			dropPreDeal.apply(null, args);
 			$(dragel).hide(150, function () {
 				$(dragel).insertBefore($unit);
+				emptyDealer(args[4], $from);
 				dropEndDeal.apply(null, args);
 				$(dragel).show(150);
 			})
 		} else {
-			args = [$(dragel), $unit.parent().parent(), $from, $el];
+			args = [$(dragel), $unit.parent().parent(), $from, $el, $(st.dragelPar)];
 			if (!dropCheck.apply(null, args)) {
 				return false;
 			}
 			dropPreDeal.apply(null, args);
 			$(dragel).hide(150, function () {
 				$(dragel).insertAfter($unit);
+				emptyDealer(args[4], $from);
 				dropEndDeal.apply(null, args);
 				$(dragel).show(150);
 			});
@@ -189,7 +199,7 @@
 	}
 
 	// drop check
-	function dropCheck ($dragel, $plel, $fromel, $toel) { // 拖动元素，置于其内的元素， 从哪个list拖过来，拖到的list
+	function dropCheck ($dragel, $plel, $fromel, $toel, $dragElPar) { // 拖动元素，置于其内的元素， 从哪个list拖过来，拖到的list, 拖动元素原来的父元素ul
 		var dt = $toel.data('zdglist');
 		var checkers = dt.dropchecker;
 		dt.$hinter.html('');
@@ -212,7 +222,7 @@
 	}
 
 	// before dropped
-	function dropPreDeal ($dragel, $plel, $fromel, $toel) {
+	function dropPreDeal ($dragel, $plel, $fromel, $toel, $dragElPar) {
 		var dealers = $toel.data('zdglist').dropPreDealers;
 		for (var i=0; i<dealers.length; i++) {
 			dealers[i].apply(null, arguments);
@@ -220,17 +230,24 @@
 	}
 
 	// after dropped
-	function dropEndDeal ($dragel, $plel, $fromel, $toel) {
+	function dropEndDeal ($dragel, $plel, $fromel, $toel, $dragElPar) {
 		var dealers = $toel.data('zdglist').dropEndDealers;
 		for (var i=0; i<dealers.length; i++) {
 			dealers[i].apply(null, arguments);
 		}
 	}
-	function emptyDealer ($dragel, $plel, $fromel, $toel) {
+	function emptyDealer ($dragElPar, $fromel) {
+		// console.log(1);
+		$fromel = $fromel || this;
+		// 拖完后如果原来的list空了，加个占位符
 		var $ul = $fromel.children('ul');
-		if ($ul.children('li').length) { return; }
-		var html = '<li><div class="'+ _class.empty_handler +'">drop here</div></li>';
-		$ul.append(html);
+		if (!$ul.children('li').length) {
+			$ul.append('<li><div class="'+ _class.empty_handler +'">drop here</div></li>'); 	
+		} else { // 被拖元素原来的父元素ul空了
+			if ($dragElPar && !$dragElPar.children('li').length) {
+				$dragElPar.remove();
+			}
+		}	
 	}
 
 	// util functions
@@ -255,9 +272,6 @@
 		}
 		return lvl;
 	}
-	function getJsonObj () {
-
-	}
 
 	// generate
 	function genHTML (unit) {
@@ -279,6 +293,48 @@
 			}
 		}
 		return $li;
+	}
+
+	// append new $li
+	function appendNew (name) {
+		var html = '<li draggable="true" class="'+_class.li_unit+'">'
+		+ '<div class="'+_class.up_placer+' zdl-plcr">up</div>'
+		+ '<div class="'+_class.div_handler+' zdl-plcr"><span class="'+_class.name_span+'">我是新目录</span><i class="fa fa-gavel cg-btn"></i></div>'
+		+ '<div class="'+_class.down_placer+' zdl-plcr">down</div></li>';
+		var $n = $(html);
+		$n.hide();
+		var $ul = this.children('.'+_class.ul_list).eq(0);
+		$ul.append($n);
+		var $empty = $ul.children().eq(0);
+		if ($empty.children().hasClass(_class.empty_handler)) {
+			$empty.remove();
+		}
+		$n.show(500);
+		return $n;
+	}
+
+	// get json of list
+	function getJson () {
+		var cli = '.'+_class.li_unit,
+			cul = '.'+_class.ul_list,
+			cname = '.'+_class.name_span;
+		function get ($ul) {
+			var arr = [], obj;
+			var $lis = $ul.children(cli);
+			$lis.each(function (i, v) {
+				v = $(v);
+				var data = v.data();
+				obj = $.extend(true, {}, data);
+				obj.name = v.find(cname).html();
+				var $liul = v.children(cul);
+				if ($liul.length && $liul.children(cli).length) {
+					obj.children = get($liul);
+				}
+				arr.push(obj);
+			});
+			return arr;
+		}
+		return JSON.stringify(get(this.children(cul)));
 	}
 
 	$.fn.draggableList = function (type) {
