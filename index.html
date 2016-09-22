@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>mydragger</title>
-	<script src="../libirary/jquery-1.12.0.min.js"></script>
+	<script src="../../libirary/jquery.js"></script>
 	<script src="draggable-list.js"></script>
 	<link rel="stylesheet" type="text/css" href="draggable-list.css">
 	<style type="text/css">
@@ -67,6 +67,10 @@
 				name: 'im 3'
 			}
 		];
+		$().draggableList('changeClasses', {
+			up_plc_html: 'ha',
+			down_plc_html: 'ol'
+		});
 		$('#ul-wrapper').draggableList('init', list, {
 			allows: ['backup'],
 			maxlevel: 3,
@@ -75,7 +79,7 @@
 		});
 		$('#backup').draggableList('init', [], {
 			allows: ['ul-wrapper'],
-			maxlevel: 1,
+			maxlevel: 2,
 			hinter: $('#hint-box')
 		});
 	</script>
