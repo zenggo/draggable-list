@@ -26,7 +26,7 @@
 			dragel: null, // 正在被拖动的li-unit
 			dragelPar: null // 被拖动li-unit的父ul元素
 		};
-		this.relation = option.allows; // 允许拖动到自身之外的d-list块
+		this.relation = option.allows || null; // 允许拖动到自身之外的d-list块
 		this.maxlevel = option.maxlevel || null; // 允许的最大层级数
 		this.$hinter = option.hinter || null; // 拖动错误提示
 		this.dropchecker = []; // 是否允许drop检查，可自定义规则
@@ -74,8 +74,8 @@
 			$list.append('<li><div class="'+ _class.empty_handler +'">drop here</div></li>');
 		}
 		this.addClass(_class.container).append($list); // this -> $containerEl
-		var zdgdata = new ZDgList(this, option);
-		if (option.maxlevel) {
+		var zdgdata = new ZDgList(this, option||{});
+		if (option && option.maxlevel) {
 			zdgdata.dropchecker.push(check_maxlvl); // drop最大层数检查
 		}
 		this.data('zdglist', zdgdata);
@@ -104,7 +104,7 @@
 		var $el = zdglist.$el;
 		var st = zdglist.status;
 		$el.on('dragover', '.'+_class.empty_handler, function (ev) {
-			if (st.draging || zdglist.relation.indexOf(_dragFromEl)>=0) {
+			if (st.draging || zdglist.relation&&zdglist.relation.indexOf(_dragFromEl)>=0) {
 				ev.preventDefault();
 			}
 		}).on('drop', '.'+_class.empty_handler, function (ev) {
@@ -147,7 +147,7 @@
 		var $tgt = $(target);
 		var dt = $el.data('zdglist');
 		var st = dt.status;
-		if (!st.draging && dt.relation.indexOf(_dragFromEl)<0) { // 也不是从其他允许的list里拖过来的
+		if (!st.draging && dt.relation&&dt.relation.indexOf(_dragFromEl)<0) { // 也不是从其他允许的list里拖过来的
 			return;
 		}
 		if (st.draging && st.dragel === $tgt.parent()[0]) {
