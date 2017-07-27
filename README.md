@@ -1,5 +1,6 @@
 # draggable-list
 ## 一个 通过鼠标拖拽操作的层级列表 组件
+[Try](https://zenggo.github.io/draggable-list/)
 ***
 依赖：jquery >= 1.7
 浏览器支持draggable属性
