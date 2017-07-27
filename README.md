@@ -25,18 +25,18 @@ var dlist = $('#dgl').draggableList('init', list, option);
 生成dom结构：
 ```
 <div id="dgl" class="zdl-container">
-		<ul class="zdl-ul">
-	    	<li class="zdl-unit" draggable="true">
-	    		<div class="zdl-plcr zdl-uppl">up</div> /*置于该单元之上的drop区域*/
-				  <div class="zdl-plcr zdl-handler"> /*置于该单元之内的drop区域*/
-					  <span class="zdl-name">music</span>
-				  </div>
-				  <div class="zdl-plcr zdl-downpl">down</div> /*置于该单元之下的drop区域*/
-	    	</li>
-	    	...
-		</ul>
-		...
-	</div>
+  <ul class="zdl-ul">
+    <li class="zdl-unit" draggable="true">
+      <div class="zdl-plcr zdl-uppl">up</div> /*置于该单元之上的drop区域*/
+	<div class="zdl-plcr zdl-handler"> /*置于该单元之内的drop区域*/
+	  <span class="zdl-name">music</span>
+        </div>
+      <div class="zdl-plcr zdl-downpl">down</div> /*置于该单元之下的drop区域*/
+    </li>
+   	...
+  </ul>
+  ...
+</div>
 ```
 接下来就可以愉快地拖动改变列表结构了
 
@@ -54,18 +54,18 @@ $().draggableList('changeClasses', {
 可覆盖的样式：(可以把类名都替换掉)
 ```
 _class = { // 默认样式见draggable-list.css
-		container: 'zdl-container', // d-list
-		ul_list: 'zdl-ul',
-		li_unit: 'zdl-unit', // li-unit
-		drop_placer: 'zdl-plcr',
-		up_placer: 'zdl-uppl',
-		up_plc_html: 'up',
-		down_placer: 'zdl-downpl',
-		down_plc_html: 'down',
-		div_handler: 'zdl-handler',
-		name_span: 'zdl-name',
-		empty_handler: 'zdl-empty'
-	};
+	container: 'zdl-container', // d-list
+	ul_list: 'zdl-ul',
+	li_unit: 'zdl-unit', // li-unit
+	drop_placer: 'zdl-plcr',
+	up_placer: 'zdl-uppl',
+	up_plc_html: 'up',
+	down_placer: 'zdl-downpl',
+	down_plc_html: 'down',
+	div_handler: 'zdl-handler',
+	name_span: 'zdl-name',
+	empty_handler: 'zdl-empty'
+};
 ```
 
 ### drag->drop过程
@@ -83,4 +83,4 @@ function接收的参数详见代码注释。
 * `getJson`：获取本dlist层级结构json格式字符串
 * `emptyDealer`：某个单元被移动后，原位置父ul可能为空 -> 移除；原属于的dlist可能为空，添加占位符。接收一个dlist中的ul元素参数
 * `appendNew`：新建一个单元
-详见代码注释。
+
